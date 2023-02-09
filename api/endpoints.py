@@ -408,7 +408,7 @@ class System:
         username = login["credentials"]["Username"]
         password = login["credentials"]["Password"]
 
-      requestJSON = {'userName':username, 'password': password}
+    requestJSON = {'userName':username, 'password': password}
 
     # Request
     return self.connector.makeRequest(
