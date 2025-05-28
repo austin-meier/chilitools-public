@@ -28,7 +28,7 @@ def isPrem(backofficeURL: str) -> bool:
     if len(url) != 5: return True
     return False
 
-def getEnviormentName(backofficeURL: str) -> str:
+def getEnvironmentName(backofficeURL: str) -> str:
     if isValidBackofficeURL(backofficeURL=backofficeURL):
         url = splitURL(url=backofficeURL)
         # Check for on-prem backoffice URL

@@ -2,7 +2,7 @@ import re
 import xmltodict
 from chilitools.utilities.errors import ErrorHandler
 from xml.sax.saxutils import unescape
-from xml.etree.ElementTree import Element, SubElement, tostring
+from lxml.etree import Element, SubElement, tostring
 from bs4 import BeautifulSoup
 
 #TODO FIX THE 'xml' package import problem conflicting with the xml.py filename
@@ -66,6 +66,18 @@ def createDatasourceXML(dataSourceID: str, data: list) -> str:
       col.text = str(value)
       c += 1
   return tostring(root, encoding='unicode')
+
+def createDatasource(dataSourceID: str, data: list) -> Element:
+  numChildren = len(data)
+  root = Element('dataSource', {'dataSourceID':dataSourceID, 'hasContent':'true', 'numRows':str(numChildren)})
+  for r in range(numChildren):
+    row = SubElement(root, 'row', {'rowNum':str(r+1)})
+    c = 1
+    for key, value in data[r].items():
+      col = SubElement(row, 'col'+str(c), {'varName':key})
+      col.text = str(value)
+      c += 1
+  return root
 
 def taskWasSuccessfull(task) -> bool:
   if task['task']['@succeeded'] == "True":

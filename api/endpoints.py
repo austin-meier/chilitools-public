@@ -10,6 +10,7 @@ from chilitools.api.mycp import generateLoginTokenForURL, getCredentials
 from chilitools.utilities.errors import ErrorHandler
 from chilitools.utilities.file import getBase64String
 from chilitools.utilities.defaults import DEFAULT_TASKPRIORITY, DEFAULT_TASKUPDATETIME, STAFF_TYPE, USER_TYPE
+from chilitools.utilities.document import ChiliDocument
 
 class Resources:
   def __init__(self, connector: ChiliConnector):
@@ -187,8 +188,24 @@ class Resources:
       newName=folderName,
       parentPath=folderPath,
       )
-  def getDownloadURL(self, resourceType: str, itemID: str, pageNum: int = 1) -> ChiliResponse:
-    return 'https://' + self.connector.baseURL + '/' + self.connector.enviroment + '/download.aspx?type=original&resourceName=' + resourceType + '&id=' + itemID + '&apiKey=' + self.connector.getAPIKey() + '&pageNum=' + pageNum
+
+  def doesItemExist(self, resourceType: str, itemID: str) -> bool:
+    res = self.ResourceItemGetXML(resourceType, itemID)
+    if res.statusCode == 404:
+      return False
+    return True
+
+  def get_name_if_exists(self, resourceType: str, itemID: str):
+    res = self.ResourceItemGetDefinitionXML(resourceType, itemID)
+    if res.statusCode == 404:
+      return False
+    if resourceType.lower() == "fonts":
+      return res.content["item"]["@relativePath"].split("\\")[-1]
+
+    return res.content["item"]["@name"]
+
+  def getDownloadURL(self, resourceType: str, itemID: str, downloadType: str = "original", pageNum: int = 1) -> ChiliResponse:
+    return f"{self.connector.baseURL}{self.connector.environment}/download.aspx?type={downloadType}&resourceName={resourceType}&id={itemID}&apiKey={self.connector.getAPIKey()}&pageNum={pageNum}"
 
   def getFullResourceTree(self, resourceType: str, folder: str = '') -> dict:
     items = dict()
@@ -214,7 +231,6 @@ class Resources:
       if not isinstance(items, list): items = [items]
       for item in items:
         if item['@isFolder'] == 'true':
-          print(f"Going in to folder {item['@name']}")
           itemsDict[item['@name']] = {}
           self._resourceTreeIter(resourceType, itemsDict[item['@name']], item['@path'])
         else:
@@ -377,6 +393,11 @@ class Documents:
     endpoint=f"/resources/documents/documentprocessor",
     json={'itemID':documentID, 'resourceXML':''}
   )
+  def is_blank(self, doc) -> bool:
+    if isinstance(doc, str):
+      doc = ChiliDocument(doc)
+    if len(doc.frames) > 0: return False
+    return True
 
 class System:
   def __init__(self, connector: ChiliConnector):
@@ -408,13 +429,13 @@ class System:
         username = login["credentials"]["Username"]
         password = login["credentials"]["Password"]
 
-      requestJSON = {'userName':username, 'password': password}
+    requestJSON = {'userName':username, 'password': password}
 
     # Request
     return self.connector.makeRequest(
       method='post',
       endpoint='/system/apikey',
-      queryParams={'environmentNameOrURL': self.connector.getEnvironment()},
+      queryParams={'environmentNameOrURL': self.connector.environment},
       json=requestJSON,
       authRequired=False
     )
@@ -422,7 +443,7 @@ class System:
   def SetAutomaticPreviewGeneration(self, createPreviews: bool) -> ChiliResponse:
     return self.connector.makeRequest(
       method='put',
-      endpoint='system/apikey/autopreviewgeneration',
+      endpoint='/system/apikey/autopreviewgeneration',
       queryParams={'createPreviews':createPreviews}
     )
 

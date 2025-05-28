@@ -90,7 +90,7 @@ def generateAndDownloadPDF(connector: ChiliConnector, fullFileName: str, documen
 
   if settingsID is None and settingsXML is None:
     return "You need to provide a PDF Export Settings Item ID or PDF Export Settings XML"
-  
+
   if downloadXML is True and documentID is not None:
     if verbose: print("Downloading XML for document")
     resp = connector.resources.ResourceItemGetXML(
@@ -117,8 +117,6 @@ def generateAndDownloadPDF(connector: ChiliConnector, fullFileName: str, documen
     resp = connector.documents.createTempPDF(documentXML=documentXML, settingsXML=settingsXML)
   if verbose: print(resp.text)
   if resp.didSucceed():
-    with open("C:\\Users\\Austin\\Desktop\\python_request.txt", "w") as file:
-      file.write(resp.response.request.body.decode('utf-8'))
     taskID = resp.contentAsDict()['task']['@id']
     task = connector.system.waitForTask(taskID=taskID, debug=verbose)
     resultURL = getTaskResultURL(task=task)

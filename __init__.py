@@ -1,6 +1,5 @@
-__version__ = '0.1.69'
+__version__ = '0.2.4'
 
-import re
 import pyperclip as pc
 from chilitools.utilities.backoffice import backofficeURLInput
 from chilitools.api.connector import ChiliConnector
@@ -15,7 +14,7 @@ def getConnector(app: dict) -> dict:
   if app['url'] is None:
     app = changeBackofficeURL(app)
   if 'connector' not in app.keys() or app['url'] != app['connector'].backofficeURL:
-    app['connector'] = ChiliConnector(backofficeURL=app['url'])
+    app['connector'] = ChiliConnector(backofficeURL=app['url'], apiVersion='1')
   return app
 
 def genLoginToken(app: dict, url: str = None) -> dict:
@@ -104,5 +103,6 @@ def menu():
     'Toggle copy output to clipboard': toggleCopy,
     'Change BackOffice URL': changeBackofficeURL,
     'Clear login credentials': deleteLogin,
+    'Exit': exit,
   }
   menuLoop(app)

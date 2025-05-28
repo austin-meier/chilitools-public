@@ -22,3 +22,11 @@ def getLogger(fullPath: str):
     datefmt=datefmt
   )
   return logger
+
+def log_level(level: str) -> int:
+  level = level.lower()
+  if level == "critical": return 50
+  if level == "error": return 40
+  if level == "warning": return 30
+  if level == "info": return 20
+  if level == "debug": return 10
